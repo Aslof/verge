@@ -17,31 +17,11 @@ get('/say/:message', function($app) {
 });
 
 post('/signup', function($app) {
-	#Legt neue Klasse an mit den Benutzerdaten
-	$user = new stdClass;
-	$user->type = 'user';
+	#Legt neue Instanz der Klasse User mit den Benutzerdaten an
+	$user = new User();
 	$user->name = $app->form('name');
 	$user->email = $app->form('email');
-	#json_encode wandelt die Klasse in ein Json um
-	echo json_encode($user);
-
-	#Hier wird der Insert in Couch DB über Curl ausgeführt
-	$curl = curl_init();
-	// curl options
-	$options = array(
-	CURLOPT_URL              => 'localhost:5984/verge',
-	CURLOPT_POSTFIELDS       => json_encode($user),
-	CURLOPT_HTTPHEADER       => array ("Content-Type: application/json"),
-	CURLOPT_CUSTOMREQUEST    => 'POST',
-	CURLOPT_RETURNTRANSFER   => true,
-	CURLOPT_ENCODING         => "utf-8",
-	CURLOPT_HEADER           => false,
-	CURLOPT_FOLLOWLOCATION   => true,
-	CURLOPT_AUTOREFERER      => true
-	);
-	curl_setopt_array($curl, $options);
-	curl_exec($curl);
-	curl_close($curl);
+	$app->couch->post($user);
 	$app->set('message', 'Thanks for Signing Up ' . $app->form('name') . '!');
 	$app->render('home');
 });
