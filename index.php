@@ -11,8 +11,9 @@ get('/signup', function($app) {
   $app->render('signup');
 });
 
-get('/love', function($app) {
-	echo "I love you!";
+get('/say/:message', function($app) {
+  $app->set('message', $app->request('message'));
+  $app->render('home');
 });
 
 post('/signup', function($app) {
