@@ -48,5 +48,11 @@ post('/login', function($app) {
 
 get('/user/:username', function($app) {
 	$app->set('user', User::get_by_username($app->request('username')));
+	$app->set('is_current_user', ($app->request('username') == User::current_user() ? true : false));
 	$app->render('user/profile');
 });
+
+
+//Muss immer am Ende des files stehen!!!
+//resolve übernimmt das error handling für nicht gefundene Pfade!
+resolve();

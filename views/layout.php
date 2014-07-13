@@ -34,9 +34,10 @@ responsive.min.css') ?>"
 					class="brand" href="<?php echo $this->make_route('/') ?>">Verge</a>
 				<div class="nav-collapse">
 					<ul class="nav">
-						<li><a href="<?php echo $this->make_route('/') ?>">Home</a>
-						</li>
+						<li><a href="<?php echo $this->make_route('/') ?>">Home</a></li>
 						<?php if (User::is_authenticated()) { ?>
+						<li><a href="<?php echo $this->make_route('/user/' . User::current_user()) ?>"> My Profile </a>
+						</li>
 						<li><a href="<?php echo $this->make_route('/logout') ?>"> Logout </a>
 						</li>
 						<?php } else { ?>

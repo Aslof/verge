@@ -41,27 +41,25 @@ class User extends Base
 
 	public function signup($username, $password) {
 		$bones = new Bones();
+		$bones->couch->setDatabase('_users');
+		$bones->couch->login(ADMIN_USER, ADMIN_PASSWORD);
 		$this->roles = array();
-		$this->name = preg_replace('/[^a-z0-9-]/', '', strtolower($username));
+		$this->name = preg_replace('/[^a-z0-9-]/', '',strtolower($username));
 		$this->_id = 'org.couchdb.user:' . $this->name;
 		$this->salt = $bones->couch->generateIDs(1)->body->uuids[0];
 		$this->password_sha = sha1($password . $this->salt);
-		$bones->couch->setDatabase('_users');
-		$bones->couch->login(ADMIN_USER, ADMIN_PASSWORD);
-
 		try {
 			$bones->couch->put($this->_id, $this->to_json());
-		} catch(SagCouchException $e) {
+		}
+		catch(SagCouchException $e) {
 			if($e->getCode() == "409") {
 				$bones->set('error', 'A user with this name already exists.');
 				$bones->render('user/signup');
-				exit;
+			} else {
+				$bones->error500($e);
 			}
 		}
-
-		#$bones->couch->put($this->_id, $this->to_json());
 	}
-
 	public static function current_user() {
 		session_start();
 		return $_SESSION['username'];
@@ -81,13 +79,23 @@ class User extends Base
 		$bones->couch->setDatabase('_users');
 		$bones->couch->login(ADMIN_USER, ADMIN_PASSWORD);
 		$user = new User();
-		$document = $bones->couch->get('org.couchdb.user:' . $username)->body;
-		$user->_id = $document->_id;
-		$user->name = $document->name;
-		$user->email = $document->email;
-		$user->full_name = $document->full_name;
-		return $user;
 
+		try {
+			$document = $bones->couch->get('org.couchdb.user:' . $username)->body;
+			$user->_id = $document->_id;
+			$user->name = $document->name;
+			$user->email = $document->email;
+			$user->full_name = $document->full_name;
+			return $user;
+		}
+		catch (SagCouchException $e)
+		{
+			if($e->getCode() == "404") {
+				$bones->error404();
+			} else {
+				$bones->error500($e);
+			}
+		}
 	}
 
 }

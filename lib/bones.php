@@ -27,6 +27,10 @@ function delete($route, $callback) {
 	Bones::register($route, $callback, 'DELETE');
 }
 
+function resolve() {
+	Bones::resolve();
+}
+
 class Bones {
 
 	private static $instance;
@@ -38,15 +42,32 @@ class Bones {
 	public $route_variables = array();
 	public $couch;
 
-		public function __construct() {
+	public function __construct() {
 		$this->route = $this->get_route();
 		$this->route_segments = explode('/', trim($this->route, '/'));
 		$this->method = $this->get_method();
 		$this->couch = new Sag('127.0.0.1', '5984');
 		$this->couch->setDatabase('verge');
 	}
-	
-	
+
+	public function error500($exception) {
+		$this->set('exception', $exception);
+		$this->render('error/500');
+		exit;
+	}
+
+	public function error404() {
+		$this->render('error/404');
+		exit;
+	}
+
+	public static function resolve() {
+		if (!static::$route_found) {
+			$bones = static::get_instance();
+			$bones->error404();
+		}
+	}
+
 	public function display_alert($variable = 'error') {
 		if (isset($this->vars[$variable])) {
 			return "<div class='alert alert-" . $variable . "'><a class='close' data-dismiss='alert'>x</a>" . $this->vars[$variable] . "</div>";
