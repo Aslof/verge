@@ -1,6 +1,10 @@
 <?php
 include 'lib/bones.php';
 
+#Temp Benutzername und Passwort für den Admin der CouchDB
+define('ADMIN_USER', 'root');
+define('ADMIN_PASSWORD', 'Alexander1');
+
 get('/', function($app) {
 	$app->set('message', 'Welcome Back!');
 	$app->render('home');
@@ -8,7 +12,16 @@ get('/', function($app) {
 });
 
 get('/signup', function($app) {
-	$app->render('signup');
+	$app->render('user/signup');
+});
+
+get('/login', function($app) {
+	$app->render('user/login');
+});
+
+get('/logout', function($app) {
+	User::logout();
+	$app->redirect('/');
 });
 
 get('/say/:message', function($app) {
@@ -17,11 +30,23 @@ get('/say/:message', function($app) {
 });
 
 post('/signup', function($app) {
-	#Legt neue Instanz der Klasse User mit den Benutzerdaten an
 	$user = new User();
-	$user->name = $app->form('name');
+	$user->full_name = $app->form('full_name');
 	$user->email = $app->form('email');
-	$app->couch->post($user);
-	$app->set('message', 'Thanks for Signing Up ' . $app->form('name') . '!');
+	$user->signup($app->form('username'), $app->form('password'));
+	$app->set('success', 'Thanks for Signing Up ' . $user->full_name .   '!');
 	$app->render('home');
+});
+
+post('/login', function($app) {
+	$user = new User();
+	$user->name = $app->form('username');
+	$user->login($app->form('password'));
+	$app->set('success', 'You are now logged in!');
+	$app->render('home');
+});
+
+get('/user/:username', function($app) {
+	$app->set('user', User::get_by_username($app->request('username')));
+	$app->render('user/profile');
 });

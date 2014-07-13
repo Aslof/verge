@@ -4,10 +4,11 @@ ini_set('display_errors','On');
 error_reporting(E_ERROR | E_PARSE);
 
 define('ROOT', __DIR__ . '/..');
+require_once ROOT . '/lib/bootstrap.php';
 require_once ROOT . '/lib/sag/src/Sag.php';
 
 function __autoload($classname) {
-   include_once(ROOT . "/classes/" . strtolower($classname) . ".php");
+	include_once(ROOT . "/classes/" . strtolower($classname) . ".php");
 }
 
 function get($route, $callback) {
@@ -37,13 +38,23 @@ class Bones {
 	public $route_variables = array();
 	public $couch;
 
-	public function __construct() {
+		public function __construct() {
 		$this->route = $this->get_route();
 		$this->route_segments = explode('/', trim($this->route, '/'));
 		$this->method = $this->get_method();
 		$this->couch = new Sag('127.0.0.1', '5984');
 		$this->couch->setDatabase('verge');
+	}
+	
+	
+	public function display_alert($variable = 'error') {
+		if (isset($this->vars[$variable])) {
+			return "<div class='alert alert-" . $variable . "'><a class='close' data-dismiss='alert'>x</a>" . $this->vars[$variable] . "</div>";
+		}
+	}
 
+	public function redirect($path = '/') {
+		header('Location: ' . $this->make_route($path));
 	}
 
 	public static function get_instance() {
